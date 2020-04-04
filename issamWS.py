@@ -88,7 +88,7 @@ def upload_file():
 """
 
 
-@app.route('/imageDetection', methods=['POST', 'GET'])
+""" @app.route('/imageDetection', methods=['POST', 'GET'])
 def upload():
     file = request.files['Image']
     filename = secure_filename(file.filename)
@@ -100,7 +100,7 @@ def upload():
     print(studentsNames)
     # TODO for i in students :  studentsObj.append(filterby(i))
     return jsonify({
-        "students": studentsNames})
+        "students": studentsNames}) """
 
 
 
@@ -109,7 +109,7 @@ def upload():
 def api_save_base64_image():
     data = request.json
     file = data['img']
-    id = data['id']
+    id = data['id'] # adding this to the file name 
     starter = file.find(',')
     image_data = file[starter+1:]
     image_data = bytes(image_data, encoding="ascii")
@@ -143,7 +143,7 @@ def addStudent():
     with open(newFileName, 'wb') as fh:
         fh.write(base64.decodebytes(image_data))
 
-    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =UPLOAD_FOLDER_STUDENTS + newFileName  )
+    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =UPLOAD_FOLDER_STUDENTS +"\\"+ newFileName  )
     db.session.add(student)
     db.session.commit()
     print (User.query.all())
@@ -154,13 +154,14 @@ def addStudent():
 #get all students
 @app.route('/getAllStudents', methods=['POST', 'GET'])
 def getAllStudents():
-    
     return jsonify({"students" : list(map(lambda user: user.serialize(), User.query.all()))}) 
 
 
 @app.route('/student/<int:id>', methods=['DELETE'])
 def delete_student(id):
-    db.session.delete(User.query.get(id))
+    student = User.query.get(id)
+    os.remove(student.image_file)
+    db.session.delete(student)
     db.session.commit()
     return jsonify({'result': True})
 
@@ -168,13 +169,40 @@ def delete_student(id):
 @app.route('/student/<int:id>', methods=['PUT'])
 def update_user(id):
     user = User.query.get(id)
+
     user.id = request.json.get('id', user.id) #2nd is for the default 
-    user.username = request.json.get('username', user.username) #2nd is for the default 
+    #rename the image if the name is changed
+    newName= request.json.get('username') 
+    if newName  : 
+        user.username = newName
+        currentPathImage = "\\".join(user.image_file.split('\\')[:-1])
+        newImagePath =currentPathImage +"\\"+ newName+".jpg" 
+        os.rename(user.image_file, newImagePath)
+        user.image_file = newImagePath
+        db.session.commit()
+
+
     user.classe = request.json.get('classe', user.classe) #2nd is for the default 
     user.email = request.json.get('email', user.email) #2nd is for the default 
     user.password = request.json.get('password', user.password) #2nd is for the default 
+
+    #change the image (remove the old and save the new)
+    file = request.json.get('img')
+    if file :
+        os.remove(user.image_file)
+        starter = file.find(',')
+        image_data = file[starter+1:]
+        image_data = bytes(image_data, encoding="ascii")
+        newFileName = user.username + ".jpg"
+        with open(newFileName, 'wb') as fh:
+            fh.write(base64.decodebytes(image_data)) 
+
     db.session.commit()
     return jsonify({'user': user.serialize()})
+
+
+
+
 
 if __name__ == '__main__':
     # * --- DEBUG MODE: --- *
