@@ -1,5 +1,7 @@
 import base64
 
+
+#for decoding
 base64_img = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAA' \
             'LEwEAmpwYAAAB1klEQVQ4jY2TTUhUURTHf+fy/HrjhNEX2KRGiyIXg8xgSURuokX' \
             'LxFW0qDTaSQupkHirthK0qF0WQQQR0UCbwCQyw8KCiDbShEYLJQdmpsk3895p4aS' \
@@ -13,7 +15,38 @@ base64_img = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAA' \
             'smHGB9pFx4n3jIEfDePQvCIrnn0J4B/gA5J4XcRfu4JZuRAw3C51OtOjM3l2bMb8' \
             'Br5eXCsT/w/EAAAAASUVORK5CYII='
 
+""" 
 base64_img_bytes = base64_img.encode('utf-8')
 with open('decoded_image.png', 'wb') as file_to_save:
     decoded_image_data = base64.decodebytes(base64_img_bytes)
-    file_to_save.write(decoded_image_data)
+    file_to_save.write(decoded_image_data) """
+
+
+#for encoding 
+with open("issamKhbou.jpg", "rb") as img_file:
+    my_string = base64.b64encode(img_file.read())
+    #print(my_string.decode('utf-8'))
+    #print(base64.decodebytes(my_string))
+
+
+jpgtxt = base64.encodestring(open("issamKhbou.jpg","rb").read())
+
+f = open("issamkhbou.txt", "w")
+f.write(jpgtxt)
+f.close()
+
+
+""" newjpgtxt = open("jpg1_b64.txt","rb").read()
+
+g = open("out.jpg", "w")
+g.write(base64.decodestring(newjpgtxt))
+g.close() """
+
+
+
+
+
+
+
+
+

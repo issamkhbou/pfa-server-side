@@ -9,6 +9,8 @@ import cv2
 import numpy as np
 import re
 import base64
+from json import dumps
+from base64 import b64encode
 
 
 from facerec_from_webcam import detect_faces_in_image
@@ -27,6 +29,34 @@ ma = Marshmallow(app)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+""" def transformImageTostring () : 
+    ENCODING = 'utf-8'
+    IMAGE_NAME = 'spam.jpg'
+    JSON_NAME = 'output.json'
+
+    # first: reading the binary stuff
+    # note the 'rb' flag
+    # result: bytes
+    with open(IMAGE_NAME, 'rb') as open_file:
+        byte_content = open_file.read()
+
+    # second: base64 encode read data
+    # result: bytes (again)
+    base64_bytes = b64encode(byte_content)
+
+    # third: decode these bytes to text
+    # result: string (in utf-8)
+    base64_string = base64_bytes.decode(ENCODING)
+
+    # optional: doing stuff with the data
+    # result here: some dict
+    raw_data = {IMAGE_NAME: base64_string}
+
+    # now: encoding the data to json
+    # result: string
+    json_data = dumps(raw_data, indent=2) """
 
 
 class User(db.Model):
@@ -120,8 +150,32 @@ def api_save_base64_image():
     frame = face_recognition.load_image_file(UPLOAD_FOLDER+"\\"+newFileName)
     studentsNames = detect_faces_in_image(frame)
     print(studentsNames)
-    return jsonify({
-        "students": studentsNames})
+
+
+    output=[]
+    for studentsName in studentsNames :
+        user = User.query.filter_by(username=studentsName).first()
+    
+        userData = {}
+        userData['id'] = user.id
+        userData['username'] = user.username
+        userData['email'] = user.email
+        userData['classe'] = user.classe
+        userData['password'] = user.password
+
+        with open(user.image_file, "rb") as img_file:
+            userImageConvertedTobase64String = base64.b64encode(img_file.read()).decode("utf-8")
+
+        userData['image_file'] = userImageConvertedTobase64String 
+        output.append(userData)
+
+    # generating a spreadsheet containing all student-class list with non presents and sending it to an email 
+    # non presents : ([allStudents(GI2S1)] - [presenStudents]) 
+    # + presents in the list => order by name => saving in the spreadsheet => sending to teacher email  
+    # email teacher is mentioned in the json object along side with the test image as well as its id  
+
+    return jsonify({'students' : output})
+    
 
 
 
@@ -133,7 +187,7 @@ def addStudent():
     classe = req_data['classe']
     email = req_data['email']
     password = req_data['password']
-    print(id)
+    #print(id)
 
     file = req_data['img']
     starter = file.find(',')
@@ -154,18 +208,57 @@ def addStudent():
 #get all students
 @app.route('/getAllStudents', methods=['POST', 'GET'])
 def getAllStudents():
-    return jsonify({"students" : list(map(lambda user: user.serialize(), User.query.all()))}) 
+    users = User.query.all()
+    output = []
+    for user in users : 
+        userData = {}
+        userData['id'] = user.id
+        userData['username'] = user.username
+        userData['email'] = user.email
+        userData['classe'] = user.classe
+        userData['password'] = user.password
+        with open(user.image_file, "rb") as img_file:
+            userImageConvertedTobase64String = base64.b64encode(img_file.read()).decode("utf-8")
+
+        userData['image_file'] = userImageConvertedTobase64String 
+        output.append(userData)
+    return jsonify({'users' : output}) 
+
+    #return jsonify({"students" : list(map(lambda user: user.serialize(), User.query.all()))}) 
+
+
+#get the details of one user :
+@app.route('/getOneStudent/<int:id>', methods=['GET'])
+def getOneStudent(id):
+    user = User.query.filter_by(id=id).first()
+    if not user : 
+        return jsonify({'message'  : 'No user found!'})
+    userData = {}
+    userData['id'] = user.id
+    userData['username'] = user.username
+    userData['email'] = user.email
+    userData['classe'] = user.classe
+    userData['password'] = user.password
+
+    with open(user.image_file, "rb") as img_file:
+        userImageConvertedTobase64String = base64.b64encode(img_file.read()).decode("utf-8")
+
+    userData['image_file'] = userImageConvertedTobase64String 
+    return jsonify({'user' : userData})
+
+
 
 
 @app.route('/student/<int:id>', methods=['DELETE'])
-def delete_student(id):
+def deleteStudent(id):
     student = User.query.get(id)
     os.remove(student.image_file)
     db.session.delete(student)
     db.session.commit()
-    return jsonify({'result': True})
+    return jsonify({'result': student.username +"deleted successfully"})
 
 
+#update a student
 @app.route('/student/<int:id>', methods=['PUT'])
 def update_user(id):
     user = User.query.get(id)
@@ -200,6 +293,13 @@ def update_user(id):
     db.session.commit()
     return jsonify({'user': user.serialize()})
 
+@app.route('/login', methods=['POST'])
+def login():
+    req_data = request.json
+    email = req_data['email']
+    password = req_data['password']
+    #TODO
+    return 
 
 
 
