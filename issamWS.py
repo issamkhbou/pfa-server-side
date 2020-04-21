@@ -12,9 +12,11 @@ import base64
 from json import dumps
 from base64 import b64encode
 
-
+import datetime
 from facerec_from_webcam import detect_faces_in_image
 import face_recognition
+from generate_xlsx import generateXlsx
+from send_email_to_teacher import send_mail_with_excel
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 UPLOAD_FOLDER = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples\\train_dir"
@@ -77,9 +79,16 @@ class User(db.Model):
                 "classe": self.classe,
                 "email": self.email,
                 "password": self.password,
-                "image_file": self.image_file,
-                
-                } 
+                "image_file": self.image_file,} 
+    
+    def equals (self,otherStudent) : 
+        return  self.id == otherStudent.id 
+
+    def exists (self , studentList) : 
+        for s in studentList : 
+            if self.equals(s) : 
+                return True 
+        return False 
 
 class UserSchema(ma.ModelSchema) : 
     class Meta : 
@@ -139,6 +148,7 @@ def upload():
 def api_save_base64_image():
     data = request.json
     file = data['img']
+    classe=data['classe']
     id = data['id'] # adding this to the file name 
     starter = file.find(',')
     image_data = file[starter+1:]
@@ -152,29 +162,30 @@ def api_save_base64_image():
     print(studentsNames)
 
 
-    output=[]
-    for studentsName in studentsNames :
-        user = User.query.filter_by(username=studentsName).first()
-    
-        userData = {}
-        userData['id'] = user.id
-        userData['username'] = user.username
-        userData['email'] = user.email
-        userData['classe'] = user.classe
-        userData['password'] = user.password
+    presents=[]
+    for studentName in studentsNames :
+        """ user = User.query.filter_by(username=studentsName).first() """
+        presents.append(User.query.filter_by(username=studentName).first())
+    print(presents , type(presents))
 
-        with open(user.image_file, "rb") as img_file:
-            userImageConvertedTobase64String = base64.b64encode(img_file.read()).decode("utf-8")
+    d = datetime.datetime.today()
+    excelFileName = "Liste "+classe+" "+d.strftime('%d-%m-%Y')+".xlsx"
+    #TODO should be replaced by all = User.query.all(class) 
+    all = User.query.all()
+    generateXlsx(excelFileName,all,presents)
 
-        userData['image_file'] = userImageConvertedTobase64String 
-        output.append(userData)
+    recipient_email="issamkha123@gmail.com"
+    send_mail_with_excel(recipient_email,classe,excelFileName)
+
 
     # generating a spreadsheet containing all student-class list with non presents and sending it to an email 
     # non presents : ([allStudents(GI2S1)] - [presenStudents]) 
     # + presents in the list => order by name => saving in the spreadsheet => sending to teacher email  
     # email teacher is mentioned in the json object along side with the test image as well as its id  
 
-    return jsonify({'students' : output})
+    #return jsonify({'students' : presents})
+    return jsonify({"students" : list(map(lambda user: user.serialize(), presents  ))}) 
+
     
 
 
@@ -255,7 +266,7 @@ def deleteStudent(id):
     os.remove(student.image_file)
     db.session.delete(student)
     db.session.commit()
-    return jsonify({'result': student.username +"deleted successfully"})
+    return jsonify({'result': student.username +" deleted successfully"})
 
 
 #update a student
@@ -300,8 +311,6 @@ def login():
     password = req_data['password']
     #TODO
     return 
-
-
 
 
 if __name__ == '__main__':

@@ -5,10 +5,11 @@ from email.message import EmailMessage
 SENDER_EMAIL = "issamkha123@gmail.com"
 EMAIL_PASSWORD = "danger123456789"
 
-subject =  "liste de presence de GI2S1 pour le cours  (var)  "
-content = "bonjour , vous trouvez ci joint la liste de presence des etudients  pour votre cours \n cordialement  "
 
-def send_mail_with_excel(recipient_email, subject, content, excel_file):
+def send_mail_with_excel(recipient_email,classe, excel_file):
+    subject =  "Liste de présence de "+classe 
+    content = "Bonjour ,\nvous trouvez ci joint la liste de présence des étudients  pour votre cours \nCordialement. "
+
     msg = EmailMessage()
     msg['Subject'] = subject
     msg['From'] = SENDER_EMAIL
@@ -25,5 +26,5 @@ def send_mail_with_excel(recipient_email, subject, content, excel_file):
 
 #first arg should be added from the json object 
 # last arg should be obtained when generating the excel file : it is presence.xlsx for tests purposes 
-send_mail_with_excel(SENDER_EMAIL,subject,content,'presence.xlsx')
+#send_mail_with_excel(SENDER_EMAIL,subject,content,'presence.xlsx')
 
