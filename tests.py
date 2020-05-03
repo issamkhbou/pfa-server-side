@@ -1,5 +1,5 @@
 import base64
-
+import os
 
 #for decoding
 base64_img = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAA' \
@@ -23,7 +23,7 @@ with open('decoded_image.png', 'wb') as file_to_save:
 
 
 #for encoding 
-with open("issamKhbou.jpg", "rb") as img_file:
+""" with open("issamKhbou.jpg", "rb") as img_file:
     my_string = base64.b64encode(img_file.read())
     #print(my_string.decode('utf-8'))
     #print(base64.decodebytes(my_string))
@@ -33,7 +33,7 @@ jpgtxt = base64.encodestring(open("issamKhbou.jpg","rb").read())
 
 f = open("issamkhbou.txt", "w")
 f.write(jpgtxt)
-f.close()
+f.close() """
 
 
 """ newjpgtxt = open("jpg1_b64.txt","rb").read()
@@ -42,11 +42,15 @@ g = open("out.jpg", "w")
 g.write(base64.decodestring(newjpgtxt))
 g.close() """
 
+s = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples\\samiBHH.jpg"
+#print((os.path.normpath(p).split(os.path.sep)[:-1]))
+s= os.path.normpath(s).split(os.path.sep)[:-1]
+newImagePath= os.path.join(*s ,"newName"+".jpg" )
+#print(newImagePath)
 
-
-
-
-
-
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.getcwd()
+print(APP_ROOT)
+print(BASE_DIR)
 
 

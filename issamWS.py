@@ -11,16 +11,21 @@ import re
 import base64
 from json import dumps
 from base64 import b64encode
-
 import datetime
+
 from facerec_from_webcam import detect_faces_in_image
 import face_recognition
 from generate_xlsx import generateXlsx
 from send_email_to_teacher import send_mail_with_excel
+from getAbsenceInSingleCourse import countAbs , getRow
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-UPLOAD_FOLDER = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples\\train_dir"
-UPLOAD_FOLDER_STUDENTS = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples"
+BASE_DIR = os.getcwd()
+UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
+
+
+#UPLOAD_FOLDER_STUDENTS = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples"
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pfa.db'
@@ -32,33 +37,6 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-""" def transformImageTostring () : 
-    ENCODING = 'utf-8'
-    IMAGE_NAME = 'spam.jpg'
-    JSON_NAME = 'output.json'
-
-    # first: reading the binary stuff
-    # note the 'rb' flag
-    # result: bytes
-    with open(IMAGE_NAME, 'rb') as open_file:
-        byte_content = open_file.read()
-
-    # second: base64 encode read data
-    # result: bytes (again)
-    base64_bytes = b64encode(byte_content)
-
-    # third: decode these bytes to text
-    # result: string (in utf-8)
-    base64_string = base64_bytes.decode(ENCODING)
-
-    # optional: doing stuff with the data
-    # result here: some dict
-    raw_data = {IMAGE_NAME: base64_string}
-
-    # now: encoding the data to json
-    # result: string
-    json_data = dumps(raw_data, indent=2) """
 
 
 class User(db.Model):
@@ -96,68 +74,22 @@ class UserSchema(ma.ModelSchema) :
 
 
 
-
-"""@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit a empty part without filename
-        if file.filename == '':
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            # print(filename)  # test.jpg
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            print("Image saved")
-            frame = face_recognition.load_image_file(UPLOAD_FOLDER+"\\"+filename)
-            print(detect_faces_in_image(frame))
-    return '''
-    <!doctype html>
-    <title>take a picture </title>
-    <h1>Upload a picture </h1>
-    <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="submit" value="Upload">
-    </form>
-    '''
-"""
-
-
-""" @app.route('/imageDetection', methods=['POST', 'GET'])
-def upload():
-    file = request.files['Image']
-    filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    print("image saved")
-
-    frame = face_recognition.load_image_file(UPLOAD_FOLDER+"\\"+filename)
-    studentsNames = detect_faces_in_image(frame)
-    print(studentsNames)
-    # TODO for i in students :  studentsObj.append(filterby(i))
-    return jsonify({
-        "students": studentsNames}) """
-
-
-
 # image uploaded by the teacher 
 @app.route('/uploadAndDetectionImage', methods=['GET', 'POST'])
 def api_save_base64_image():
     data = request.json
     file = data['img']
+    course = data['course']
     classe=data['classe']
     id = data['id'] # adding this to the file name 
     starter = file.find(',')
     image_data = file[starter+1:]
     image_data = bytes(image_data, encoding="ascii")
     newFileName = 'test'+str(id)+".jpg"
-    with open('train_dir\\'+newFileName, 'wb') as fh:
+    with open(os.path.join(os.getcwd(),'uploads',newFileName), 'wb') as fh:
         fh.write(base64.decodebytes(image_data))
 
-    frame = face_recognition.load_image_file(UPLOAD_FOLDER+"\\"+newFileName)
+    frame = face_recognition.load_image_file(os.path.join(UPLOAD_FOLDER,newFileName))
     studentsNames = detect_faces_in_image(frame)
     print(studentsNames)
 
@@ -169,13 +101,14 @@ def api_save_base64_image():
     print(presents , type(presents))
 
     d = datetime.datetime.today()
-    excelFileName = "Liste "+classe+" "+d.strftime('%d-%m-%Y')+".xlsx"
+    #PATH_TO_COURSE_CLASSE = os.path.join(os.getcwd(),'courses',course,classe)
+    excelFileName =os.path.join(os.getcwd(),'courses',course,classe,"Liste "+classe+" "+d.strftime('%d-%m-%Y')+".xlsx")    
     #TODO should be replaced by all = User.query.all(class) 
-    all = User.query.all()
+    all = list(User.query.filter_by(classe=classe))
     generateXlsx(excelFileName,all,presents)
 
     recipient_email="issamkha123@gmail.com"
-    send_mail_with_excel(recipient_email,classe,excelFileName)
+    #send_mail_with_excel(recipient_email,classe,excelFileName)
 
 
     # generating a spreadsheet containing all student-class list with non presents and sending it to an email 
@@ -185,8 +118,6 @@ def api_save_base64_image():
 
     #return jsonify({'students' : presents})
     return jsonify({"students" : list(map(lambda user: user.serialize(), presents  ))}) 
-
-    
 
 
 
@@ -208,7 +139,7 @@ def addStudent():
     with open(newFileName, 'wb') as fh:
         fh.write(base64.decodebytes(image_data))
 
-    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =UPLOAD_FOLDER_STUDENTS +"\\"+ newFileName  )
+    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =os.path.join(BASE_DIR, newFileName)    )
     db.session.add(student)
     db.session.commit()
     print (User.query.all())
@@ -279,8 +210,9 @@ def update_user(id):
     newName= request.json.get('username') 
     if newName  : 
         user.username = newName
-        currentPathImage = "\\".join(user.image_file.split('\\')[:-1])
-        newImagePath =currentPathImage +"\\"+ newName+".jpg" 
+        #s= os.path.normpath(user.image_file).split(os.path.sep)[:-1]
+       # newImagePath= os.path.join(*s ,newName+".jpg" )
+        newImagePath= os.path.join(os.getcwd() ,newName+".jpg" )
         os.rename(user.image_file, newImagePath)
         user.image_file = newImagePath
         db.session.commit()
@@ -304,13 +236,31 @@ def update_user(id):
     db.session.commit()
     return jsonify({'user': user.serialize()})
 
-@app.route('/login', methods=['POST'])
-def login():
+
+
+# parcours des fichiers excel et recherche des abscence pour un étudient
+# retourner le resultat 
+@app.route('/getAbsenceInSingleCourse', methods=['GET'])
+def getAbsence():
     req_data = request.json
-    email = req_data['email']
-    password = req_data['password']
-    #TODO
-    return 
+    #id = req_data['id']
+    username = req_data['username']
+    classe = req_data['classe']
+    course = req_data['course']
+
+    path =  os.path.join(os.getcwd(),"courses",course, classe)
+     
+    all = list(User.query.filter_by(classe=classe))
+
+    files = os.listdir(path) 
+    #getting the student pos in stylesheet(feuille d'appel)
+    positionInSheet = getRow(username, os.path.join(path,files[0]) )
+    count ,dates = countAbs(username,path,positionInSheet)
+    output = {
+        "abscenceTimes" : count ,
+        "dates" : dates
+    }
+    return jsonify(output)
 
 
 if __name__ == '__main__':
