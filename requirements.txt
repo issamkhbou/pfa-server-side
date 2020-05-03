@@ -1,6 +1,5 @@
 aniso8601==8.0.0
 boost-py
-cmake
 quartz
 astroid==2.1.0
 attrs==18.2.0
