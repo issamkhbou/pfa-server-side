@@ -190,7 +190,6 @@ def getOneStudent(id):
 
 
 
-
 @app.route('/student/<int:id>', methods=['DELETE'])
 def deleteStudent(id):
     student = User.query.get(id)
@@ -263,6 +262,3 @@ def getAbsence():
     return jsonify(output)
 
 
-if __name__ == '__main__':
-    # * --- DEBUG MODE: --- *
-    app.run(host='127.0.0.1', port=5000, debug=True)
