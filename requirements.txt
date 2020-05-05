@@ -1,11 +1,11 @@
-
 colorama==0.4.1
 constantly==15.1.0
 convertdate==2.2.0
 cycler==0.10.0
 decorator==4.4.1
 defusedxml==0.6.0
-
+cmake
+dlib
 docutils==0.14
 entrypoints==0.3
 et-xmlfile==1.0.1
@@ -99,7 +99,6 @@ webencodings==0.5.1
 Werkzeug==0.15.1
 widgetsnbextension==3.5.1
 wrapt==1.11.1
-wxPython==4.0.4
 xlrd==1.2.0
 XlsxWriter==1.2.8
 
