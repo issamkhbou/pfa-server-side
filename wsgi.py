@@ -1,4 +1,4 @@
-from .issamWS import app
+from app.issamWS import app 
 
 if __name__ == "__main__": 
 		app.run() 
