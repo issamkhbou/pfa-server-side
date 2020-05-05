@@ -1,13 +1,7 @@
 from flask import Flask, flash, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from werkzeug.utils import secure_filename
-from flask_cors import CORS, cross_origin
 import os
-import psycopg2
-import cv2
-import numpy as np
-import re
 import base64
 from json import dumps
 from base64 import b64encode
