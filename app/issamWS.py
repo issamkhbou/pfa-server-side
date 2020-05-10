@@ -164,8 +164,12 @@ def getAllStudents():
         userData['email'] = user.email
         userData['classe'] = user.classe
         userData['password'] = user.password
-        with open(user.image_file, "rb") as img_file:
+
+        img = os.path.join(UPLOAD_FOLDER_STUDENTS,user.username+".jpg") 
+
+        with open(img, "rb") as img_file:
             userImageConvertedTobase64String = base64.b64encode(img_file.read()).decode("utf-8")
+        
 
         userData['image_file'] = userImageConvertedTobase64String 
         output.append(userData)
