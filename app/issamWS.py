@@ -193,7 +193,9 @@ def getOneStudent(id):
     userData['classe'] = user.classe
     userData['password'] = user.password
 
-    with open(user.image_file, "rb") as img_file:
+    img = os.path.join(UPLOAD_FOLDER_STUDENTS,user.username+".jpg") 
+
+    with open(img, "rb") as img_file:
         userImageConvertedTobase64String = base64.b64encode(img_file.read()).decode("utf-8")
 
     userData['image_file'] = userImageConvertedTobase64String 
@@ -204,7 +206,10 @@ def getOneStudent(id):
 @app.route('/student/<int:id>', methods=['DELETE'])
 def deleteStudent(id):
     student = User.query.get(id)
-    os.remove(student.image_file)
+
+    img = os.path.join(UPLOAD_FOLDER_STUDENTS,student.username+".jpg") 
+
+    os.remove(img)
     db.session.delete(student)
     db.session.commit()
     return jsonify({'result': student.username +" deleted successfully"})
