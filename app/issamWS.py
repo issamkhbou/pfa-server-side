@@ -140,10 +140,10 @@ def addStudent():
     image_data = file[starter+1:]
     image_data = bytes(image_data, encoding="ascii")
     newFileName = req_data['username'] + ".jpg"
-    with open( os.path.join(BASE_DIR,"students",newFileName) , 'wb') as fh:
+    with open( os.path.join(UPLOAD_FOLDER_STUDENTS,newFileName) , 'wb') as fh:
         fh.write(base64.decodebytes(image_data))
 
-    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =os.path.join(BASE_DIR,"students",newFileName)   )
+    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =os.path.join(UPLOAD_FOLDER_STUDENTS,newFileName)   )
     db.session.add(student)
     db.session.commit()
     print (User.query.all())
