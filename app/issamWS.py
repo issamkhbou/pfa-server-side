@@ -27,7 +27,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pfa.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
-ma = Marshmallow(app)
 
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -69,9 +68,6 @@ class User(db.Model):
                 return True 
         return False 
 
-class UserSchema(ma.ModelSchema) : 
-    class Meta : 
-        model = User 
 
 
 @app.route("/")
