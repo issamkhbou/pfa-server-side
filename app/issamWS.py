@@ -7,9 +7,9 @@ import base64
 from json import dumps
 from base64 import b64encode
 import datetime
+import face_recognition
 
 from app.facerec_from_webcam import detect_faces_in_image
-import face_recognition
 from app.generate_xlsx import generateXlsx
 from app.send_email_to_teacher import send_mail_with_excel
 from app.getAbsenceInSingleCourse import countAbs , getRow
@@ -20,7 +20,7 @@ BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
 
 UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
 
-#UPLOAD_FOLDER_STUDENTS = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples"
+UPLOAD_FOLDER_STUDENTS = os.path.join(BASE_DIR,"students")
 
 
 app = Flask(__name__)
@@ -140,10 +140,10 @@ def addStudent():
     image_data = file[starter+1:]
     image_data = bytes(image_data, encoding="ascii")
     newFileName = req_data['username'] + ".jpg"
-    with open(newFileName, 'wb') as fh:
+    with open( os.path.join(BASE_DIR,"students",newFileName) , 'wb') as fh:
         fh.write(base64.decodebytes(image_data))
 
-    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =os.path.join(BASE_DIR, newFileName)    )
+    student = User(id=id , username = username , classe = classe , email = email , password = password , image_file =os.path.join(BASE_DIR,"students",newFileName)   )
     db.session.add(student)
     db.session.commit()
     print (User.query.all())
@@ -219,7 +219,7 @@ def update_user(id):
         user.username = newName
         #s= os.path.normpath(user.image_file).split(os.path.sep)[:-1]
        # newImagePath= os.path.join(*s ,newName+".jpg" )
-        newImagePath= os.path.join(BASE_DIR ,newName+".jpg" )
+        newImagePath= os.path.join(UPLOAD_FOLDER_STUDENTS ,newName+".jpg" )
         os.rename(user.image_file, newImagePath)
         user.image_file = newImagePath
         db.session.commit()
@@ -237,7 +237,7 @@ def update_user(id):
         image_data = file[starter+1:]
         image_data = bytes(image_data, encoding="ascii")
         newFileName = user.username + ".jpg"
-        with open(newFileName, 'wb') as fh:
+        with open( os.path.join(UPLOAD_FOLDER_STUDENTS ,newFileName ), 'wb') as fh:
             fh.write(base64.decodebytes(image_data)) 
 
     db.session.commit()
