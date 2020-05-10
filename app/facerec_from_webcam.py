@@ -1,5 +1,4 @@
 import face_recognition
-import cv2
 import numpy as np
 import os
 
@@ -16,13 +15,16 @@ import os
 def detect_faces_in_image(frame):
     files_image = {}
     files_face_encoding = []
-    relevant_path = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples"
+    #relevant_path = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples"
+    relevant_path = os.path.dirname(os.path.abspath(__file__))
+    print(relevant_path)
+
     included_extensions = ['jpg']
     file_names = [fn for fn in os.listdir(relevant_path)
                   if any(fn.endswith(ext) for ext in included_extensions)]
 
     for i in file_names:
-        files_image[i] = face_recognition.load_image_file(i)
+        files_image[i] = face_recognition.load_image_file(os.path.join(relevant_path,i))
         files_face_encoding.append(face_recognition.face_encodings(files_image[i])[0])
 
     known_face_encodings = [

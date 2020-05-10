@@ -7,16 +7,17 @@ from json import dumps
 from base64 import b64encode
 import datetime
 
-from facerec_from_webcam import detect_faces_in_image
+from app.facerec_from_webcam import detect_faces_in_image
 import face_recognition
-from generate_xlsx import generateXlsx
-from send_email_to_teacher import send_mail_with_excel
-from getAbsenceInSingleCourse import countAbs , getRow
+from app.generate_xlsx import generateXlsx
+from app.send_email_to_teacher import send_mail_with_excel
+from app.getAbsenceInSingleCourse import countAbs , getRow
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-BASE_DIR = os.getcwd()
-UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
+#BASE_DIR = os.getcwd()
+BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
 
+UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
 
 #UPLOAD_FOLDER_STUDENTS = "D:\\2019\\python\\face_recognition-master\\face_recognition-master\\examples"
 
@@ -80,7 +81,7 @@ def api_save_base64_image():
     image_data = file[starter+1:]
     image_data = bytes(image_data, encoding="ascii")
     newFileName = 'test'+str(id)+".jpg"
-    with open(os.path.join(os.getcwd(),'uploads',newFileName), 'wb') as fh:
+    with open(os.path.join(UPLOAD_FOLDER , newFileName), 'wb') as fh:
         fh.write(base64.decodebytes(image_data))
 
     frame = face_recognition.load_image_file(os.path.join(UPLOAD_FOLDER,newFileName))
@@ -96,7 +97,7 @@ def api_save_base64_image():
 
     d = datetime.datetime.today()
     #PATH_TO_COURSE_CLASSE = os.path.join(os.getcwd(),'courses',course,classe)
-    excelFileName =os.path.join(os.getcwd(),'courses',course,classe,"Liste "+classe+" "+d.strftime('%d-%m-%Y')+".xlsx")    
+    excelFileName =os.path.join(BASE_DIR,'courses',course,classe,"Liste "+classe+" "+d.strftime('%d-%m-%Y')+".xlsx")    
     #TODO should be replaced by all = User.query.all(class) 
     all = list(User.query.filter_by(classe=classe))
     generateXlsx(excelFileName,all,presents)
@@ -158,6 +159,7 @@ def getAllStudents():
 
         userData['image_file'] = userImageConvertedTobase64String 
         output.append(userData)
+    #print ([i['username'] for i in output])
     return jsonify({'users' : output}) 
 
     #return jsonify({"students" : list(map(lambda user: user.serialize(), User.query.all()))}) 
@@ -205,7 +207,7 @@ def update_user(id):
         user.username = newName
         #s= os.path.normpath(user.image_file).split(os.path.sep)[:-1]
        # newImagePath= os.path.join(*s ,newName+".jpg" )
-        newImagePath= os.path.join(os.getcwd() ,newName+".jpg" )
+        newImagePath= os.path.join(BASE_DIR ,newName+".jpg" )
         os.rename(user.image_file, newImagePath)
         user.image_file = newImagePath
         db.session.commit()
@@ -241,7 +243,7 @@ def getAbsence():
     classe = req_data['classe']
     course = req_data['course']
 
-    path =  os.path.join(os.getcwd(),"courses",course, classe)
+    path =  os.path.join(BASE_DIR,"courses",course, classe)
      
     all = list(User.query.filter_by(classe=classe))
 
