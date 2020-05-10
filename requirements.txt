@@ -7,7 +7,8 @@ Flask==1.0.2
 Flask-SQLAlchemy==2.4.1
 
 gunicorn==20.0.4
-
+flask_cors
+flask_marshmallow
 marshmallow==3.5.1
 marshmallow-sqlalchemy==0.22.3
 numpy==1.16.1

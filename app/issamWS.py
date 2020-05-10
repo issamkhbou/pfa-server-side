@@ -1,4 +1,5 @@
 from flask import Flask, flash, request, redirect, url_for, jsonify
+from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
@@ -27,6 +28,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pfa.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -68,8 +74,14 @@ class UserSchema(ma.ModelSchema) :
         model = User 
 
 
+@app.route("/")
+@cross_origin()
+def helloWorld():
+  return "Hello, world! welcome to our PFA project"
+
 
 # image uploaded by the teacher 
+@cross_origin()
 @app.route('/uploadAndDetectionImage', methods=['GET', 'POST'])
 def api_save_base64_image():
     data = request.json
@@ -117,6 +129,7 @@ def api_save_base64_image():
 
 
 @app.route('/addStudent', methods=['POST', 'GET'])
+@cross_origin()
 def addStudent():
     req_data = request.json
     id = req_data['id']
@@ -143,6 +156,7 @@ def addStudent():
 
 
 #get all students
+@cross_origin()
 @app.route('/getAllStudents', methods=['POST', 'GET'])
 def getAllStudents():
     users = User.query.all()
@@ -166,6 +180,7 @@ def getAllStudents():
 
 
 #get the details of one user :
+@cross_origin()
 @app.route('/getOneStudent/<int:id>', methods=['GET'])
 def getOneStudent(id):
     user = User.query.filter_by(id=id).first()
@@ -185,7 +200,7 @@ def getOneStudent(id):
     return jsonify({'user' : userData})
 
 
-
+@cross_origin()
 @app.route('/student/<int:id>', methods=['DELETE'])
 def deleteStudent(id):
     student = User.query.get(id)
@@ -196,6 +211,7 @@ def deleteStudent(id):
 
 
 #update a student
+@cross_origin()
 @app.route('/student/<int:id>', methods=['PUT'])
 def update_user(id):
     user = User.query.get(id)
@@ -235,6 +251,7 @@ def update_user(id):
 
 # parcours des fichiers excel et recherche des abscence pour un étudient
 # retourner le resultat 
+@cross_origin()
 @app.route('/getAbsenceInSingleCourse', methods=['GET'])
 def getAbsence():
     req_data = request.json
