@@ -2,8 +2,8 @@
 import smtplib
 from email.message import EmailMessage
 
-SENDER_EMAIL = "issamkha123@gmail.com"
-EMAIL_PASSWORD = "danger123456789"
+SENDER_EMAIL = "pfaenis1@gmail.com"
+EMAIL_PASSWORD = "0azerty123456789"
 
 
 def send_mail_with_excel(recipient_email,classe, excel_file):

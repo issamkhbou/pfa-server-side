@@ -47,7 +47,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='default.png')
-
+    img_encoding = db.Column(db.String(20), nullable=False)
+    
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"
     
@@ -85,6 +86,7 @@ def api_save_base64_image():
     course = data['course']
     classe=data['classe']
     id = data['id'] # adding this to the file name 
+    recipient_email = data['recipient_email'] # adding this to the file name 
     starter = file.find(',')
     image_data = file[starter+1:]
     image_data = bytes(image_data, encoding="ascii")
@@ -110,8 +112,8 @@ def api_save_base64_image():
     all = list(User.query.filter_by(classe=classe))
     generateXlsx(excelFileName,all,presents)
 
-    recipient_email="issamkha123@gmail.com"
-    #send_mail_with_excel(recipient_email,classe,excelFileName)
+    recipient_email="pfaenis1@gmail.com"
+    send_mail_with_excel(recipient_email,classe,excelFileName)
 
 
     # generating a spreadsheet containing all student-class list with non presents and sending it to an email 
@@ -177,6 +179,41 @@ def getAllStudents():
     return jsonify({'users' : output}) 
 
     #return jsonify({"students" : list(map(lambda user: user.serialize(), User.query.all()))}) 
+
+@cross_origin()
+@app.route('/getStudentsByClass', methods=['POST', 'GET'])
+def getStudentsByClass():
+
+    req_data = request.json
+    #id = req_data['id']
+    classe = req_data['classe']
+    users =list(User.query.filter_by(classe=classe))
+    if users : 
+        output = []
+        for user in users : 
+            userData = {}
+            userData['id'] = user.id
+            userData['username'] = user.username
+            userData['email'] = user.email
+            userData['classe'] = user.classe
+            userData['password'] = user.password
+
+            img = os.path.join(UPLOAD_FOLDER_STUDENTS,user.username+".jpg") 
+
+            with open(img, "rb") as img_file:
+                userImageConvertedTobase64String = base64.b64encode(img_file.read()).decode("utf-8")
+            
+
+            userData['image_file'] = userImageConvertedTobase64String 
+            output.append(userData)
+        #print ([i['username'] for i in output])
+        return jsonify({'users' : output}) 
+    else : 
+        return jsonify({'users' : "no students found"})
+
+
+    #return jsonify({"students" : list(map(lambda user: user.serialize(), User.query.all()))}) 
+
 
 
 #get the details of one user :
