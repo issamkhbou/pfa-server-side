@@ -14,7 +14,7 @@ marshmallow-sqlalchemy==0.22.3
 numpy==1.16.1
 openpyxl==3.0.3
 Pillow==5.4.1
-pipenv==2018.11.26
+pipenv==2022.1.8
 pylint==2.2.2
 pylint-flask-sqlalchemy==0.2.0
 requests==2.21.0
